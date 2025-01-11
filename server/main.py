@@ -31,5 +31,13 @@ def Sendpath():
        
     return jsonify(data=drive_array)
 
+@app.route('/getpath/<string:path>' , methods=["GET" , "POST"])
+def get_directory(path):
+    try:
+        data = os.listdir(path)
+        
+        return jsonify(pathdata = data)
+    except:
+        return jsonify(error="An error occured!")
 
 app.run(debug=True)
