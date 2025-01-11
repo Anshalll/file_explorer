@@ -21,8 +21,10 @@ def Sendpath():
        converted_total = data.total / 1073741824
        converted_used = data.used / 1073741824
        converted_free = data.free / 1073741824
-
-       dict = {"partition_name": partition.device, "total": converted_total, "used": converted_used, "free": converted_free }
+     
+       fileinpath = os.listdir(partition.device)
+       
+       dict = {"partition_name": partition.device, "total": converted_total, "used": converted_used, "free": converted_free , "fileindir" : fileinpath}
        
        drive_array.append(dict)
         
