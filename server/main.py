@@ -1,5 +1,6 @@
 from flask import Flask, Response, jsonify
 import os
+import psutil
 
 app = Flask(__name__)
 
@@ -8,9 +9,18 @@ app = Flask(__name__)
 def INDEX():
     return jsonify(message= "project starts")
 
-@app.route("/hello")
+@app.route("/getdata")
 def Sendpath():
-    return jsonify(path=os.getcwd())
+    
+    drive_array= []
+    partitions = psutil.disk_partitions()
+    for partition in partitions:
+        drive_array.append(partition.device)
+
+        
+    
+    return jsonify(data=drive_array)
+
 
 
 
