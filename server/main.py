@@ -1,6 +1,7 @@
 from flask import Flask, Response, jsonify
 import os
 import psutil
+import shutil
 
 app = Flask(__name__)
 
@@ -15,10 +16,16 @@ def Sendpath():
     drive_array= []
     partitions = psutil.disk_partitions()
     for partition in partitions:
-        drive_array.append(partition.device)
-
         
-    
+       data = shutil.disk_usage(partition.device)
+       converted_total = data.total / 1073741824
+       converted_used = data.used / 1073741824
+       converted_free = data.free / 1073741824
+       dict = {"partition_name": partition.device, "total": converted_total, "used": converted_used, "free": converted_free }
+       
+       drive_array.append(dict)
+       
+       
     return jsonify(data=drive_array)
 
 
