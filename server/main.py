@@ -51,5 +51,69 @@ def renamepath():
         os.rename(full_existing , full_new)
 
         return jsonify(message=f"Renamed {full_existing} to {full_new}")
+    
 
+@app.route('/delete' , methods=["DELETE"])
+def delete():
+    data = request.get_json()
+    try:
+        full_existing = data["fullpath"] + data["name"]  
+        os.remove(full_existing)
+        return jsonify(message=f"Deleted file {full_existing}")
+    except:
+        return jsonify(error=f"the file is invailid {full_existing}")
+    
+
+@app.route('/copy' , methods=["PUT"])
+def copy():
+    try:
+        data = request.get_json()
+        full_existing = data["fullpath"] + data["file"] 
+        destination_path = data["endpath"]
+        shutil.copy(full_existing, destination_path)
+        return jsonify(message=f"{full_existing} copied to {destination_path}")
+    except:
+        return jsonify(error="the error has occured!")
+    
+@app.route('/move' , methods=["PUT"])
+def move():
+    try:
+        data = request.get_json()
+        full_existing = data["fullpath"] + data["file"] 
+        destination_path = data["endpath"]
+        shutil.move(full_existing, destination_path)
+        return jsonify(message=f" {full_existing} moved to {destination_path} ")
+    except:
+        return jsonify(error="the error has occured!")
+ 
+@app.route('/multi_del' , methods=["DELETE"])
+def multi_del():
+    try:
+      data = request.get_json()
+      for i in data["files"]:
+          pathname = data["fullpath"] +  i
+          shutil.rmtree(pathname)
+      return jsonify(message=f"All files are deleted.")
+    except Exception as e :
+        print(e)
+        return jsonify(error= "An error occured")
+
+@app.route('/multi_copy' , methods=["PUT"])
+def multi_copy():
+    try:
+        data = request.get_json()
+        for i in data["files"]:
+            pathname = data["fullpath"] +  i
+            os.chmod(pathname, 0o666)
+            shutil.copy(pathname, data["destination"])
+        return jsonify(message="copyed successfully!")
+    except Exception as e :
+        print(e)
+        return jsonify(error="An error occured!")
+
+    
+    
+      
+
+    
 app.run(debug=True)
