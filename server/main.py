@@ -1,4 +1,4 @@
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 import os
 import shutil
 import psutil
@@ -39,5 +39,11 @@ def get_directory(path):
         return jsonify(pathdata = data)
     except:
         return jsonify(error="An error occured!")
+
+
+@app.route("/rename/<string:name>" , methods=["PATCH"])
+def renamepath(name):
+       
+        return jsonify(message="Post request recieved!")
 
 app.run(debug=True)
