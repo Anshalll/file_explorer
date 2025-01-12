@@ -41,9 +41,15 @@ def get_directory(path):
         return jsonify(error="An error occured!")
 
 
-@app.route("/rename/<string:name>" , methods=["PATCH"])
-def renamepath(name):
+@app.route("/rename" , methods=["PATCH"])
+def renamepath():
+        
+        data = request.get_json() 
        
-        return jsonify(message="Post request recieved!")
+        full_existing = data["fullpath"] + data["name"] 
+        full_new = data["fullpath"] + data["new"]
+        os.rename(full_existing , full_new)
+
+        return jsonify(message=f"Renamed {full_existing} to {full_new}")
 
 app.run(debug=True)
