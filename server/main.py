@@ -126,11 +126,30 @@ def multi_move():
         return jsonify(error="An error occured!")
     
 
-# @app.route('/search' , methods=["POST"])
-# def search():
-#     data = request.get_json()
-#     search = data["fullpath"]
+@app.route('/search' , methods=["POST"])
+def search():
+    data = request.get_json()
+    search = data["searched"]
+
     
+    partitions = psutil.disk_partitions()
+    for i in partitions:
+           
+            findings = []
+            for root, dirs, files in os.walk(i.device):
+                if not len(findings) >= 500:
+                    for foldername in dirs:
+                       
+                        if search in foldername:
+                            findings.append(foldername)
+                    for file in files:
+                        if search in file:
+                            findings.append(file)
+            else:
+                break
+
+
+    return jsonify(data=findings)
      
     
     
