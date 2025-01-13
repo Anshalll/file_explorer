@@ -2,8 +2,10 @@ from flask import Flask, Response, jsonify, request
 import os
 import shutil
 import psutil
-app = Flask(__name__)
+from flask_cors import CORS
 
+app = Flask(__name__)
+CORS(app , origins=["http://localhost:3000"])
 
 @app.route('/' , methods=["GET" , "POST"])
 def INDEX():
