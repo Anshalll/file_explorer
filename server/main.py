@@ -110,10 +110,26 @@ def multi_copy():
     except Exception as e :
         print(e)
         return jsonify(error="An error occured!")
-
     
+@app.route('/multi_move' , methods=["PUT"])
+def multi_move():
+    try:
+        data = request.get_json()
+        for i in data["files"]:
+            pathname = data["fullpath"] +  i
+            os.chmod(pathname, 0o666)
+            shutil.move(pathname, data["destination"])
+        return jsonify(message="moved successfully!")
+    except: 
+        return jsonify(error="An error occured!")
     
-      
 
+# @app.route('/search' , methods=["POST"])
+# def search():
+#     data = request.get_json()
+#     search = data["fullpath"]
+    
+     
+    
     
 app.run(debug=True)
