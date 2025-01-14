@@ -3,7 +3,7 @@ import os
 import shutil
 import psutil
 from flask_cors import CORS
-
+from concurrent.futures import ThreadPoolExecutor
 app = Flask(__name__)
 CORS(app , origins=["http://localhost:3000"])
 
@@ -126,6 +126,20 @@ def multi_move():
         return jsonify(error="An error occured!")
     
 
+def MainThreadFind(args):
+    root, dir_name, file_name, search = args
+    
+   
+    result = []
+    
+    if search in dir_name:
+        result.append({"dirname": dir_name , "root" : root  })
+        
+    if search in file_name:
+        result.append({"filename" : file_name , "root" : root})
+    
+    return result 
+
 @app.route('/search' , methods=["POST"])
 def search():
     try: 
@@ -136,26 +150,30 @@ def search():
         
         partitions = psutil.disk_partitions()
         for i in partitions:
+
+                
             
-                for root, dirs, files in os.walk(i.device):
-                    
-                    if  len(findings) >= 500:
-                        break
+                for root, dirs, files in os.walk(i.mountpoint): 
+                        args = [(root, dir_name, file_name , search  ) for dir_name in dirs for file_name in files ]
+
+                        if len(findings) >= 500:
+                             break
                         
-                    for foldername in dirs:
                         
+                        with ThreadPoolExecutor(max_workers=12) as exe:
+                            results = exe.map(MainThreadFind, args)
                             
-                        if search in foldername:
-                            findings.append(foldername)
-                                
-                                
-                    for mainfile in files:
-                        if search in mainfile:
-                            findings.append(mainfile)
                             
+                            for result in results:
+                                if len(findings) >= 500:
+                                    break
+                                if result:
+                                    findings.extend(result) 
+
+                                    
         return jsonify(data=findings)
-    except:
-        
+    except Exception as e:
+        print(e)
         return jsonify(error="An error occured")
 
     
