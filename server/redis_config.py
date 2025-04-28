@@ -21,9 +21,10 @@ class Redis_server:
     def Redis_set(self , key , values):
         
         try: 
-         
+        
             data = json.dumps(values)
-            self.r.set(key , data )
+  
+            self.r.execute_command('JSON.SET', key, '.',data)
             return True
         except Exception  as e:
             print(e)
@@ -31,7 +32,7 @@ class Redis_server:
         
     def Redis_get(self , key ):
         try: 
-            data = self.r.get(key)
+            data = self.r.execute_command('JSON.GET', key, '.')
        
             if data:
                 return {"data" : json.loads(data) , "error": False}

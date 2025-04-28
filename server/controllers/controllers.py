@@ -118,8 +118,8 @@ class FIleExplorer:
     
             redis_data = RedisObj.Redis_get(os.path.abspath(pathname["path"]))
             
+           
             if not redis_data["error"] and  redis_data["data"] != None:
-            
                 return jsonify(pathdata = redis_data["data"] , success= True , data="recived cached!")
             
             for i in data:
