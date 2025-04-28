@@ -18,13 +18,13 @@ class Redis_server:
         except redis.ConnectionError as e:
             print(f"Redis connection error: {e}")
 
-    def Redis_set(self , key , values):
+    def Redis_set(self , key , values , tr="."):
         
         try: 
         
             data = json.dumps(values)
   
-            self.r.execute_command('JSON.SET', key, '.',data)
+            self.r.execute_command('JSON.SET', key, tr,data)
             return True
         except Exception  as e:
             print(e)

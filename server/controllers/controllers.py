@@ -9,6 +9,7 @@ import stat
 from redis_config import RedisObj
 from threading import Lock
 import time
+from functions.Listpath import Listpath
 
 ENCRYPTED_FILES_META = "encrypted_file.json"
 
@@ -19,7 +20,7 @@ class FIleExplorer:
         self.lock = Lock() 
 
     def GenerateFilekey(self):
-         
+        
          fernet_key = ""
          key = Fernet.generate_key()
 
@@ -77,12 +78,6 @@ class FIleExplorer:
             
             return  {"encryption_error" : True}
 
-
-    
-    def oslistdir(self, path):
-        data = os.listdir(path)
-        return data
-
     def Sendpath(self):
         
         drive_array= []
@@ -95,7 +90,7 @@ class FIleExplorer:
             converted_used = data.used / 1073741824
             converted_free = data.free / 1073741824
         
-            fileinpath = self.oslistdir(partition.device)
+            fileinpath = os.listdir(partition.device)
             
             dict = {"partition_name": partition.device, "total": converted_total, "used": converted_used, "free": converted_free , "fileindir" : fileinpath }
             
@@ -114,7 +109,7 @@ class FIleExplorer:
             pathname = request.get_json()
             datatosend = []
 
-            data = self.oslistdir(pathname["path"])
+           
     
             redis_data = RedisObj.Redis_get(os.path.abspath(pathname["path"]))
             
@@ -122,14 +117,7 @@ class FIleExplorer:
             if not redis_data["error"] and  redis_data["data"] != None:
                 return jsonify(pathdata = redis_data["data"] , success= True , data="recived cached!")
             
-            for i in data:
-                 
-                if os.path.isdir(f"{pathname["path"]}/{i}"):
-                       
-                    datatosend.append({  "isdir": True , "name": i , "path": f"{pathname["path"]}/{i}" , "ext": f"{os.path.splitext(i)[-1]}"})
-                        
-                else:
-                    datatosend.append({ "isdir": False  , "name": i , "path" : f"{pathname["path"]}/{i}" , "ext": f"{os.path.splitext(i)[-1]}"})
+            datatosend = Listpath(pathname["path"] , os.listdir(pathname["path"]))
 
             setdata = RedisObj.Redis_set(os.path.abspath(pathname["path"]) , datatosend)
 
@@ -146,8 +134,14 @@ class FIleExplorer:
         
             full_existing =  data["name"] 
             full_new =  data["new"]
-            os.rename(full_existing , full_new)
+            os.rename(full_existing , f'{full_new}{os.path.splitext(full_existing)[1]}')
+            
+            base_name = os.path.dirname(full_existing)
 
+            Listpathdata = Listpath(base_name , os.listdir(base_name))
+           
+            RedisObj.Redis_set(os.path.abspath(base_name) , Listpathdata )
+           
             return jsonify(message=f"Renamed {full_existing} to {full_new}" , success=True)
         except:
             return jsonify(error="An error occured!" , success=False)
@@ -182,8 +176,13 @@ class FIleExplorer:
 
                     if os.path.isdir(i):
                         shutil.rmtree(i)
+                       
                     else:
-                            os.remove(i)
+                        os.remove(i)
+                    datatosend = Listpath(os.path.dirname(i) , os.listdir(os.path.dirname(i)))
+                    RedisObj.Redis_set(os.path.abspath(os.path.dirname(i)) , datatosend)
+
+                    
                 return jsonify(message=f"All files are deleted." , success=True)
             except Exception as e:
                 print(e)
@@ -196,6 +195,15 @@ class FIleExplorer:
                  
                    
                     shutil.move(i, data["destination"])
+                    base_name = os.path.dirname(i)
+
+                    Listpathdata_exs = Listpath(base_name , os.listdir(base_name))
+                    Listpathdata_des = Listpath(os.path.dirname(data["destination"]) , os.listdir(data["destination"]))
+
+
+                    RedisObj.Redis_set(os.path.abspath(base_name) , Listpathdata_exs )
+                    RedisObj.Redis_set(os.path.abspath(os.path.dirname(data["destination"])) , Listpathdata_des )
+
                 return jsonify(message="moved successfully!" , success = True)
             except : 
                 return jsonify(error="An error occured!" , success = False)
@@ -218,6 +226,10 @@ class FIleExplorer:
                     else:
 
                         shutil.copy(pathname,  os.path.join( data["destination"] , os.path.basename(pathname)))
+
+                    Listpathdata = Listpath(data["destination"], os.listdir(data["destination"]))
+                   
+                    RedisObj.Redis_set(os.path.abspath(data["destination"]) , Listpathdata )
 
                 return jsonify(message="copied successfully!" , success=True)
 
